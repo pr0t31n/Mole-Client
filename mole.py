@@ -6,12 +6,16 @@ Detects the OS and architecture, selects the correct mole binary from this
 directory, and exec's it with client.yaml (plus any extra arguments passed
 to this script).
 
+Must run as root / Administrator. If not, automatically re-launches itself
+with sudo (Linux / macOS) or UAC elevation (Windows).
+
 Usage:
-    sudo python3 mole.py                  # activate proxy
-    sudo python3 mole.py --check          # probe servers, no system changes
-    sudo python3 mole.py --config /path/to/other.yaml
+    python3 mole.py                       # auto-elevates if needed
+    python3 mole.py --check               # probe servers, no system changes
+    python3 mole.py --config /path/to/other.yaml
 """
 
+import ctypes
 import os
 import platform
 import sys
@@ -37,9 +41,36 @@ def die(msg):
     sys.exit(1)
 
 
+def ensure_root(os_name):
+    """Re-exec with elevated privileges if not already root / Administrator."""
+    if os_name == "windows":
+        try:
+            is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+        except Exception:
+            is_admin = False
+
+        if not is_admin:
+            # Re-launch this script with UAC elevation and wait for it to finish.
+            args = " ".join(f'"{a}"' for a in sys.argv)
+            ret = ctypes.windll.shell32.ShellExecuteW(
+                None, "runas", sys.executable, args, None, 1
+            )
+            # ShellExecuteW returns > 32 on success.
+            if ret <= 32:
+                die("UAC elevation failed or was denied.")
+            sys.exit(0)
+    else:
+        if os.geteuid() != 0:
+            # Re-exec this script under sudo, replacing the current process.
+            os.execvp("sudo", ["sudo", sys.executable] + sys.argv)
+
+
 def main():
     os_name  = platform.system().lower()
     machine  = platform.machine()
+
+    ensure_root(os_name)
+
     filename = BINARY_MAP.get((os_name, machine))
 
     if not filename:
