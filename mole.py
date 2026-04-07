@@ -90,6 +90,11 @@ def main():
                 f"    Pass --config /path/to/client.yaml to specify one.")
         args = ["--config", str(DEFAULT_CONFIG)] + args
 
+    # Ensure the binary is executable (it may lack the bit after a file copy).
+    current_mode = binary.stat().st_mode
+    if not (current_mode & 0o111):
+        binary.chmod(current_mode | 0o755)
+
     # exec replaces this process with the binary — signals (Ctrl+C) go
     # directly to mole, and its exit code becomes the exit code of this script.
     os.execv(str(binary), [str(binary)] + args)
