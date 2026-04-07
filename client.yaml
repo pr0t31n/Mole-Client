@@ -41,10 +41,10 @@ servers:
     socks5_port: 1080
     dns_port: 5053
 
-#  - name: "Backup"
-#    host: "10.8.0.2"
-#    socks5_port: 1080
-#    dns_port: 5353
+  - name: "Site-B"
+    host: "10.87.84.254"
+    socks5_port: 1080
+    dns_port: 5053
 
   # Add more servers as needed — tried in order until one succeeds.
   # - name: "DR-Site"
