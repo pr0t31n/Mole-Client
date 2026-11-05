@@ -6,6 +6,9 @@ Pre-built client for the **Mole** SOCKS5 + DNS transparent proxy suite.
 
 ---
 
+
+> **[View full documentation on the Codex Wiki](https://wiki.pr0t31n.com/tools/mole-client)** — detailed features, CLI reference, findings catalogue, and integration guides.
+
 ## How It Works
 
 ```
